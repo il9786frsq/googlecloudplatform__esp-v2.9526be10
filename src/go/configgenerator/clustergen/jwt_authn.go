@@ -50,7 +50,7 @@ func NewJWTProviderClustersFromOPConfig(serviceConfig *servicepb.Service, opts o
 	for _, provider := range serviceConfig.GetAuthentication().GetProviders() {
 		jwksURI, err := maybeGetJWKSURIByOpenID(provider, opts)
 		if err != nil {
-			continue
+			return nil, err
 		}
 
 		addr, err := util.ExtractAddressFromURI(jwksURI)
@@ -62,14 +62,14 @@ func NewJWTProviderClustersFromOPConfig(serviceConfig *servicepb.Service, opts o
 			glog.Infof("Ignoring authn provider with ID %q and JWKS URI %q because it already has a config.", provider.GetId(), jwksURI)
 			continue
 		}
-		dedupClusterNames[jwksURI] = true
+		dedupClusterNames[addr] = true
 
 		gen := &JWTProviderCluster{
 			ID:                    provider.GetId(),
 			JWKSURI:               jwksURI,
 			ClusterConnectTimeout: opts.ClusterConnectTimeout,
 			DNS:                   helpers.NewClusterDNSConfigerFromOPConfig(opts),
-			TLS:                   helpers.NewClusterTLSConfigerFromOPConfig(opts, true),
+			TLS:                   helpers.NewClusterTLSConfigerFromOPConfig(opts, false),
 		}
 		gens = append(gens, gen)
 	}
