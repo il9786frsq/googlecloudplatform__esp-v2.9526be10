@@ -78,7 +78,7 @@ func CreateCommonTlsContext(rootCertsPath, sslPath, sslFileName, sslMinimumProto
 	commonTls := &tlspb.CommonTlsContext{}
 	// Add TLS certificate
 	if sslPath != "" && sslFileName != "" {
-		if strings.HasSuffix(sslPath, "/") {
+		if !strings.HasSuffix(sslPath, "/") {
 			sslPath = fmt.Sprintf("%s/", sslPath)
 		}
 
@@ -111,13 +111,13 @@ func CreateCommonTlsContext(rootCertsPath, sslPath, sslFileName, sslMinimumProto
 		}
 	}
 
-	if sslMinimumProtocol != "" && sslMaximumProtocol != "" && cipherSuites != "" {
+	if sslMinimumProtocol != "" || sslMaximumProtocol != "" || cipherSuites != "" {
 		commonTls.TlsParams = &tlspb.TlsParameters{}
 		if minVersion, ok := tlsProtocolVersionMap[sslMinimumProtocol]; ok {
-			commonTls.TlsParams.TlsMaximumProtocolVersion = minVersion
+			commonTls.TlsParams.TlsMinimumProtocolVersion = minVersion
 		}
 		if maxVersion, ok := tlsProtocolVersionMap[sslMaximumProtocol]; ok {
-			commonTls.TlsParams.TlsMinimumProtocolVersion = maxVersion
+			commonTls.TlsParams.TlsMaximumProtocolVersion = maxVersion
 		}
 
 		if cipherSuites != "" {
