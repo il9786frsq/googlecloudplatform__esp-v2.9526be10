@@ -87,7 +87,7 @@ func (g *ProxyBackendGenerator) GenRouteConfig(filterGens []filtergen.FilterGene
 			BackendClusterName: backendCluster.Name,
 			HostRewrite:        backendCluster.HostName,
 			Deadline:           deadlineSpecifier.Deadline,
-			IsStreaming:        method.GetRequestStreaming() && method.GetResponseStreaming(),
+			IsStreaming:        method.GetRequestStreaming() || method.GetResponseStreaming(),
 			HTTPPattern:        httpPattern.Pattern,
 		}
 
@@ -100,12 +100,12 @@ func (g *ProxyBackendGenerator) GenRouteConfig(filterGens []filtergen.FilterGene
 
 			if !isGrpc {
 				methodCfg.BackendClusterName = backendCluster.HTTPBackend.Name
-				if !g.AllowHostRewriteForHTTPBackend {
+				if g.AllowHostRewriteForHTTPBackend {
 					methodCfg.HostRewrite = backendCluster.HTTPBackend.HostName
 				} else {
 					methodCfg.HostRewrite = ""
 				}
-				methodCfg.Deadline = deadlineSpecifier.Deadline
+				methodCfg.Deadline = deadlineSpecifier.HTTPBackendDeadline
 				methodCfg.IsStreaming = false
 			}
 		}
