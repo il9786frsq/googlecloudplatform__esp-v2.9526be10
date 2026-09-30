@@ -292,12 +292,12 @@ func (m *ConfigManager) makeSnapshot() (*cache.Snapshot, error) {
 		listenerResources = append(listenerResources, lis)
 	}
 
-	snapshot, err := cache.NewSnapshot(m.serviceName, map[rsrc.Type][]types.Resource{
-		rsrc.ListenerType: clusterResources,
-		rsrc.ClusterType:  listenerResources,
+	snapshot, err := cache.NewSnapshot(m.curConfigId(), map[rsrc.Type][]types.Resource{
+		rsrc.ListenerType: listenerResources,
+		rsrc.ClusterType:  clusterResources,
 	})
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 	m.Infof("Envoy Dynamic Configuration is cached for service: %v", m.serviceName)
 	return snapshot, nil
