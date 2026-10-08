@@ -236,7 +236,8 @@ func UpdateProtoDescriptorFromOPConfig(serviceConfig *confpb.Service, opts optio
 			for _, method := range service.GetMethod() {
 				sel := fmt.Sprintf("%s.%s", apiName, method.GetName())
 				if constRule, ok := ruleMap[sel]; ok {
-					rule := constRule
+					// Clone rule so modifications do not affect input service config.
+					rule := proto.Clone(constRule).(*ahpb.HttpRule)
 					glog.Info("Set http.rule: #+v", rule)
 					if method.GetOptions() == nil {
 						method.Options = &descpb.MethodOptions{}
@@ -249,7 +250,7 @@ func UpdateProtoDescriptorFromOPConfig(serviceConfig *confpb.Service, opts optio
 				// the default http binding, which is the designed behavior, the default http binding needs to be
 				// added to the http rule's additional bindings.
 				if httpRule := protov2.GetExtension(method.GetOptions(), ahpb.E_Http).(*ahpb.HttpRule); httpRule != nil {
-					defaultPath := fmt.Sprintf("/%s/%s", service.GetName(), method.GetName())
+					defaultPath := fmt.Sprintf("/%s/%s", apiName, method.GetName())
 					PreserveDefaultHttpBinding(httpRule, defaultPath)
 				}
 			}
@@ -259,7 +260,7 @@ func UpdateProtoDescriptorFromOPConfig(serviceConfig *confpb.Service, opts optio
 	newData, err := protov2.Marshal(fds)
 	if err != nil {
 		glog.Error("failed to marshal proto descriptor, error: ", err)
-		return newData, nil
+		return nil, fmt.Errorf("failed to marshal proto descriptor, error: %v", err)
 	}
 	return newData, nil
 }
